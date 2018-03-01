@@ -32,11 +32,11 @@
 #'
 #' CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 #' CImatrix2=ashci(beta.ash,level=0.95,lfsr_threshold=0.1)
-ashci = function (a,level=0.95,betaindex,lfsr_threshold=0.05,tol=1e-3,trace=FALSE){
+ashci = function (a,level=0.95,betaindex,lfsr_threshold=1,tol=1e-3,trace=FALSE){
   data = a$data
   if(is.null(data)){stop("ash object has to have data returned to compute CIs; use outputlevel 2 or more when running ash")}
  
-  options(warn=-1)
+  # options(warn=-1)
   if(missing(betaindex)){
     betaindex = which(get_lfsr(a)<=lfsr_threshold)
     #betaindex[is.na(betaindex)]=FALSE #Some lfsrs would have NA
@@ -51,7 +51,7 @@ ashci = function (a,level=0.95,betaindex,lfsr_threshold=0.05,tol=1e-3,trace=FALS
   m=get_fitted_g(a)
   percentage=1
   
-  if( class(m) != "normalmix" && class(m) != "unimix" ){stop(paste("Invalid class",class(m)))}
+  if( class(m) != "normalmix" && class(m) != "unimix" && class(m) != "tnormalmix"){stop(paste("Invalid class",class(m)))}
 
   CImatrix=matrix(NA,nrow=length(PosteriorMean),ncol=2)
   colnames(CImatrix)=c((1-level)/2,(1+level)/2)

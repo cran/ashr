@@ -16,17 +16,20 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   alpha[flip]= -alpha[flip]
   beta[flip]=-beta[flip]
   
+  
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b is a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
   # ZMZ:  when a and b are both negative and far from 0, etruncnorm can't compute
   # the mean and variance. Also we should deal with 0/0 situation caused by sd = 0.
-  tmp1=etruncnorm(alpha,beta,0,1)
-  isequal=is.equal(alpha,beta)
+  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
+  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
+  tmp1=etruncnorm(lower,upper,0,1)
   
+  isequal=is.equal(alpha,beta)
   tmp1[isequal]=alpha[isequal]
   
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   
   max_alphabeta = ifelse(alpha<beta, beta,alpha)
   max_ab = ifelse(alpha<beta,b,a)
@@ -34,12 +37,33 @@ my_etruncnorm= function(a,b,mean=0,sd=1){
   toobig[is.na(toobig)]=FALSE
   tmp[toobig] = max_ab[toobig]
 
+  # muzhe: this part consider many cases when 
+  # truncnorm expectation outcome is NA. For example
+  # when sd=0, or when the mean lies outside the given
+  # interval with extremely small sd, etc. This part 
+  # deals with all these problems. The concrete example
+  # can be found in test_myetruncnorm.R file.
+  # Also we need the function to be adaptive to 
+  # various forms of input: scaler, vector, matrix.
+  # To unify all these possibility we need to wrap
+  # things up. That's what expand_args function does.
   NAentry = is.na(tmp)
-  sdd = sd
-  sdd[NAentry] = 0
-  tmp = modify.sd0(tmp,a,b,mean,sdd)
-  
-  tmp
+  if(sum(NAentry)>0 | sum(sd==0)>0) {
+    sList = expand_args(tmp,sd)
+    sList[[2]][NAentry] = 0
+    sdd = sList[[2]]
+    BigList = expand_args(tmp,a,b,mean,sdd)
+    sdzero = which(BigList[[5]] == 0)
+    BigList[[1]][sdzero] = ifelse(BigList[[2]][sdzero]<=BigList[[4]][sdzero] & BigList[[3]][sdzero]>=BigList[[4]][sdzero],BigList[[4]][sdzero],ifelse(BigList[[2]][sdzero] > BigList[[4]][sdzero],BigList[[2]][sdzero],BigList[[3]][sdzero]))
+    result = matrix(BigList[[1]],ifelse(is.null(dim(tmp)),length(tmp),dim(tmp)[1]),ifelse(is.null(dim(tmp)),1,dim(tmp)[2]))
+    result = as.matrix(result)
+    if(min(dim(result))==1){return(as.numeric(result))}
+    return(result)
+  }
+  else{
+    return(tmp)
+  }
+
 }
 
 #tests for equality, with NA defined to be FALSE
@@ -49,19 +73,11 @@ is.equal = function(a,b){
   return(isequal)
 }
 
-#elementwisely deal with entries with sd equals to 0
-modify.sd0 = function(temp,a,b,mean,sd){
-  dimen = dim(temp)
-  if(is.null(dimen)){
-    dimen = c(length(temp),1)
-  }
-  A = matrix(a,dimen[1],dimen[2])
-  B = matrix(b,dimen[1],dimen[2])
-  M = matrix(mean,dimen[1],dimen[2])
-  SD = matrix(sd,dimen[1],dimen[2])
-  sdzero = which(sd == 0)
-  temp[sdzero] = ifelse(A[sdzero]<=M[sdzero] & B[sdzero]>=M[sdzero],M[sdzero],ifelse(A[sdzero] > M[sdzero],A[sdzero],B[sdzero]))
-  temp
+expand_args <- function(...){
+  dots <- list(...)
+  max_length <- max(sapply(dots, length))
+  lapply(dots, rep, length.out = max_length)
+
 }
 
 #' More about the truncated normal
@@ -80,11 +96,14 @@ my_e2truncnorm= function(a,b,mean=0,sd=1){
   #Fix a bug of quoting the truncnorm package
   #E(X|a<X<b)=a when a==b as a natural result
   #while etruncnorm would simply return NaN,causing PosteriorMean also NaN
-  tmp1=etruncnorm(alpha,beta,0,1)
+  lower = ifelse(alpha<beta,alpha,beta) # needed this to make etruncnorm play nice with Inf
+  upper = ifelse(alpha<beta,beta,alpha) # see Issue #78
+  tmp1=etruncnorm(lower,upper,0,1)
+  
   isequal=is.equal(alpha,beta)
  
   tmp1[isequal]=alpha[isequal]
-  tmp= (-1)^flip * (mean+sd*tmp1)
+  tmp= mean+ sd * ((-1)^flip * tmp1)
   # for the variance
   # error report in vtruncnorm
   # vtruncnorm(10,-10,0,1)

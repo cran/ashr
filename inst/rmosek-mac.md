@@ -24,7 +24,7 @@ This could be done under GUI, or under terminal. For example:
 
 ```bash
 wget http://download.mosek.com/stable/7.1.0.53/mosektoolsosx64x86.tar.bz2
-tar -xvf mosektoolsosx64x86.tar.bz2
+tar jxvf mosektoolsosx64x86.tar.bz2
 ```
 
 ## Install mosek license
@@ -88,10 +88,10 @@ devtools::install_github('stephens999/ashr')
 
 ## Links
 
-[1] [mosek download](https://www.mosek.com/resources/downloads)
+[1] [mosek download](https://www.mosek.com/downloads)
 
 [2] [mosek free personal academic
-license](https://www.mosek.com/resources/academic-license)
+license](https://license.mosek.com/academic/)
 
 [3] [Rmosek installation
 flags](https://stephenslab.slack.com/archives/rtips/p1461621202000012)

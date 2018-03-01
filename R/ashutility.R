@@ -13,6 +13,7 @@
 #'     generic/method.
 #'
 #' @export
+#' @method summary ash
 #'
 summary.ash=function(object,...){
   if(!is.null(object$fitted_g)){print(object$fitted_g)}
@@ -32,9 +33,10 @@ summary.ash=function(object,...){
 #'     generic/method.
 #'
 #' @export
-#'
+#' @method print ash
+#' 
 print.ash =function(x,...){
-  summary(x)
+  print(summary(x,...))
 }
 
 #' @title Plot method for ash object
@@ -47,6 +49,7 @@ print.ash =function(x,...){
 #' @param xmax xlim upper range, default is the highest value of betahat
 #' @details None
 #'
+#' @method plot ash
 #' @export
 #'
 plot.ash = function(x,...,xmin,xmax){
@@ -55,6 +58,112 @@ plot.ash = function(x,...,xmin,xmax){
   xgrid = seq(xmin,xmax,length=1000)
   y = cdf.ash(x,xgrid)
   graphics::plot(y,type="l",...)
+}
+
+#' @title Diagnostic plots for ash object
+#'
+#' @description Generate several plots to diagnose the fitness of ASH on the data
+#'
+#' @param x the fitted ash object
+#' @param plot.it logical. whether to plot the diagnostic result
+#' @param sebetahat.tol tolerance to test the equality of betahat
+#' @param plot.hist logical. whether to plot the histogram of betahat when sebetahat is not constant
+#' @param xmin,xmax range of the histogram of betahat to be plotted
+#' @param breaks histograms parameter (see \code{\link[graphics]{hist}})
+#' @param alpha error level for the de-trended diagnostic plot
+#' @param pch,cex plot parameters for dots
+#' 
+#' @details None.
+#'
+#' @export
+#'
+#' @importFrom graphics lines
+#' @importFrom graphics legend
+#' @importFrom graphics abline
+#' @importFrom stats punif
+#' @importFrom stats qbeta
+#' 
+plot_diagnostic = function (x, plot.it = TRUE, 
+                            sebetahat.tol = 1e-3,
+                            plot.hist,
+                            xmin, xmax, breaks = "Sturges",
+                            alpha = 0.01,
+                            pch = 19, cex = 0.25
+                            ) {
+  cdfhat = cdf_conv(x$fitted_g, x$data)
+  na.ind = is.na(cdfhat)
+  n = length(cdfhat[!na.ind])
+  if (n == 0) (stop("The data have only NAs."))
+  p.ks.unif = round(stats::ks.test(cdfhat, punif)$p.val, 3)
+  upper = qbeta(1 - alpha / 2, 1:n, n + 1 - (1:n)) - (1:n) / (n + 1)
+  lower = qbeta(alpha / 2, 1:n, n + 1 - (1:n)) - (1:n) / (n + 1)
+  diff = sort(cdfhat[!na.ind]) - (1 : n) / (n + 1)
+  if (plot.it) {
+    sebetahat <- x$data$s
+    sebetahat.same <- abs(max(sebetahat, na.rm = TRUE) - min(sebetahat, na.rm = TRUE)) / mean(sebetahat, na.rm = TRUE) <= sebetahat.tol
+    if (missing(plot.hist)) {
+      plot.hist = sebetahat.same
+    }
+    if (plot.hist) {
+      betahat <- x$data$x
+      if (missing(xmin)) {xmin = min(betahat, na.rm = TRUE)}
+      if (missing(xmax)) {xmax = max(betahat, na.rm = TRUE)}
+      xgrid.length = 1000
+      xgrid = seq(xmin - 1, xmax + 1, length = xgrid.length)
+      plot.data <- x$data
+      if (sebetahat.same) {
+        plot.data$x = xgrid
+        plot.data$s = rep(mean(sebetahat, na.rm = TRUE), xgrid.length)
+        fhat = dens_conv(x$fitted_g, plot.data)
+      } else {
+        fhat = c()
+        for (i in 1 : xgrid.length) {
+          plot.data$x = rep(xgrid[i], n)
+          plot.data$s = sebetahat[!na.ind]
+          fhat[i] = mean(dens_conv(x$fitted_g, plot.data))
+        }
+      }
+      hist.betahat = graphics::hist(betahat[!na.ind], breaks = breaks, plot = FALSE)
+      graphics::hist(betahat[!na.ind], probability = TRUE, breaks = breaks,
+                     ylim = c(0, max(c(fhat, hist.betahat$density))),
+                     xlab = expression(hat(beta)),
+                     main = expression(paste("Histogram of ", hat(beta)))
+                     )
+      lines(xgrid, fhat, col = "blue")
+      legend("topleft", lty = 1, col = "blue", "ASH")
+      cat ("Press [enter] to see next plot")
+      line <- readline()
+    }
+    graphics::plot((1 : n) / (n + 1), sort(cdfhat[!na.ind]),
+                   xlim = c(0, 1), ylim = c(0, 1),
+                   xlab = "Theoretical Uniform Quantile", 
+                   ylab = "Estimated Predictive Quantile",
+                   main = "Diagnostic Plot for ASH",
+                   pch = pch, cex = cex
+                   )
+    abline(0, 1, lty = 2, col = "red")
+    cat ("Press [enter] to see next plot")
+    line <- readline()
+    graphics::plot(diff, cex = cex, pch = pch, 
+         ylim = range(diff, upper, lower, 0),
+         xlab = "Index k",
+         ylab = expression(Q[(k)] - E(Q[(k)])), 
+         main = c("De-trended Diagnostic Plot for ASH", 
+                  paste("K-S Uniformity Test p Value:", p.ks.unif))
+         )
+    abline(h = 0, col = "red", lty = 2)
+    lines(upper, col = "red")
+    lines(lower, col = "red")
+    cat ("Press [enter] to see next plot")
+    line <- readline()
+    graphics::hist(cdfhat[!na.ind], probability = TRUE, breaks = breaks,
+                   xlab = "Estimated Predictive Quantile",
+                   main = c("Histogram of Estimated Predictive Quantile",
+                            paste("K-S Uniformity Test p Value:", p.ks.unif))
+                   )
+    abline(h = 1, lty = 2, col = "red")
+  }
+  invisible(cdfhat)
 }
 
 #' @title Compute loglikelihood for data from ash fit
@@ -109,8 +218,17 @@ calc_vloglik = function(g,data){
     }
     if(class(g)=="ash"){g = g$fitted_g} #extract g object from ash object if ash object passed
   }
-  return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
+  
+  # compute log(dens_conv(g,data))
+  log_comp_dens = log_comp_dens_conv(g, data)
+  offset = apply(t(log_comp_dens),1,max)
+  log_comp_dens = t(t(log_comp_dens)-offset) # avoid numeric issues by subtracting max of each row
+  log_dens = log(colSums(g$pi * exp(log_comp_dens)))+offset # add offset back
+  
+  #return(log(dens_conv(g,data))- data$alpha*(log(data$s_orig)))
+  return(log_dens - data$alpha*(log(data$s_orig)))
 }
+
 
 
 #' @title Compute vector of loglikelihood for data under null that all
@@ -173,6 +291,23 @@ cdf.ash=function(a,x,lower.tail=TRUE){
   return(list(x=x,y=mixcdf(a$fitted_g,x,lower.tail)))
 }
 
+#' @title Sample from posterior 
+#'
+#' @description Returns random samples from the posterior distribution for each
+#'     observation in an ash object. A matrix is returned, with columns corresponding
+#'     to observations and rows corresponding to samples.
+#'
+#' @param a the fitted ash object
+#' @param nsamp number of samples to return (for each observation)
+#' @examples 
+#' beta = rnorm(100,0,1)
+#' betahat= beta+rnorm(100,0,1)
+#' ash.beta = ash(betahat,1,mixcompdist="normal")
+#' post.beta = get_post_sample(ash.beta,1000)
+#' @export
+get_post_sample = function(a,nsamp){
+  return(post_sample(a$fitted_g,a$data,nsamp))
+}
 
 #Functions from MATLAB packages, used to measure performance and to show progress
 tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))

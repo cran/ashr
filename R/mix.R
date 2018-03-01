@@ -264,7 +264,6 @@ log_comp_dens_conv.default = function(m,data){
 }
 
 
-
 #' @title dens_conv
 #' @description compute density of mixture m convoluted with normal of
 #'     sd (s) or student t with df v at locations x
@@ -274,6 +273,31 @@ dens_conv = function(m,data){
 }
 dens_conv.default = function(m,data){
   colSums(m$pi * comp_dens_conv(m,data))
+}
+
+
+#' @title comp_cdf_conv
+#' @description compute the cdf of data for each component of mixture when convolved with error distribution 
+#' @param m mixture distribution with k components
+#' @param data details depend on the model
+#' @return a k by n matrix of cdfs
+comp_cdf_conv = function (m, data) {
+  UseMethod("comp_cdf_conv")
+}
+comp_cdf_conv.default = function(m, data){
+  stop(paste("Invalid class", class(m), "for first argument in",  match.call()))
+}
+
+
+#' @title cdf_conv
+#' @description compute cdf of mixture m convoluted with error distribution
+#'  either normal of sd (s) or student t with df v at locations x
+#' @inheritParams comp_cdf_conv
+cdf_conv = function (m, data) {
+  UseMethod("cdf_conv")
+}
+cdf_conv.default = function (m, data) {
+  colSums(m$pi * comp_cdf_conv(m, data))
 }
 
 
@@ -459,6 +483,23 @@ comp_postmean.default = function(m,data){
   stop("method comp_postmean not written for this class")
 }
 
+#' @title prune
+#' @description prunes out mixture components with low weight
+#' @param m What is this argument?
+#' @param thresh the threshold below which components are removed
+#' @export
+prune = function(m,thresh=1e-10){
+  UseMethod("prune")
+}
+#' @export
+prune.default = function(m,thresh = 1e-10){
+  which.comp = (m$pi > thresh)
+  for(i in 1:length(m)){
+    m[[i]] = m[[i]][which.comp]
+  }
+  m$pi = m$pi/sum(m$pi) #renormalize
+  return(m)
+}
 
 
 #' @title comp_postsd
@@ -480,6 +521,25 @@ comp_postsd = function(m,data){
 #' @export
 comp_postsd.default = function(m,data){
   stop("method comp_postsd not written for this class")
+}
+
+#' @title post_sample
+#' @description returns random samples from the posterior, given a prior distribution
+#'     m and n observed datapoints. 
+#' @details exported, but mostly users will want to use `get_post_sample`
+#' @param m prior distribution (eg of type normalmix)
+#' @param data a list with components x and s, each vectors of length n, to be interpreted as a 
+#'     normally-distributed observations and corresponding standard errors
+#' @param nsamp number of random samples to return for each observation
+#' @return an nsamp by n matrix
+#' @export
+post_sample = function(m,data,nsamp){
+  UseMethod("post_sample")
+}
+
+#' @export
+post_sample.default = function(m,data,nsamp){
+  stop("method post_sample not written for this class")
 }
 
 #find nice limits of mixture m for plotting

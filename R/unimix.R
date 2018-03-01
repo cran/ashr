@@ -66,12 +66,43 @@ log_comp_dens_conv.unimix = function(m,data){
   
   lpa = do.call(lik$lcdfFUN, list(outer(data$x,a,FUN="-")/data$s))
   lpb = do.call(lik$lcdfFUN, list(outer(data$x,b,FUN="-")/data$s))
+  
+  if (sum(lpa-lpb,na.rm=TRUE)<0){
+    tmp = lpa
+    lpa = lpb
+    lpb = tmp
+  }
    
   lcomp_dens = t(lpa + log(1-exp(lpb-lpa))) - log(b-a)
   lcomp_dens[a==b,] = t(do.call(lik$lpdfFUN, list(outer(data$x,b,FUN="-")/data$s))
                        -log(data$s))[a==b,]
   return(lcomp_dens)
 }
+
+#' cdf of convolution of each component of a unif mixture 
+#' @param m a mixture of class unimix
+#' @param data, see set_data()
+#'
+#' @return a k by n matrix
+#'
+#' @export
+#'
+#' @importFrom stats pnorm
+#' @importFrom stats dnorm
+#' 
+comp_cdf_conv.unimix = function (m, data) {
+  if(!is_normal(data$lik)){
+    stop("Error: diagnostic plot of uniform mixture for non-normal likelihood is not yet implemented")
+  }
+  b = pmax(m$b,m$a) #ensure a<b
+  a = pmin(m$b,m$a)
+  b.mat = outer(data$x, b, FUN = "-") / data$s
+  a.mat = outer(data$x, a, FUN = "-") / data$s
+  lcomp_cdf_conv = t(log(pmax(a.mat * pnorm(a.mat) + dnorm(a.mat) - b.mat * pnorm(b.mat) - dnorm(b.mat), 0)) - log(a.mat - b.mat))
+  lcomp_cdf_conv[a == b, ] = t(log(pnorm(a.mat)))[a == b, ]
+  return(exp(lcomp_cdf_conv))
+}
+
 
 #' @export
 comp_cdf_post.unimix=function(m,c,data){
@@ -114,10 +145,15 @@ comp_postmean.unimix = function(m,data){
 
   lik = data$lik
   
-  alpha = outer(-x, m$a,FUN="+")/s
-  beta = outer(-x, m$b, FUN="+")/s
- 
-  tmp = x + s*do.call(lik$etruncFUN, list(alpha,beta))
+  alpha = outer(x, -m$b,FUN="+")/s
+  beta = outer(x, -m$a, FUN="+")/s
+  
+  tmp = x-s*do.call(lik$etruncFUN, list(alpha,beta))
+  
+  # alpha = outer(-x, m$a,FUN="+")/s
+  # beta = outer(-x, m$b, FUN="+")/s
+  # 
+  # tmp = x + s*do.call(lik$etruncFUN, list(alpha,beta))
  
   ismissing = is.na(x) | is.na(s)
   tmp[ismissing,]= (m$a+m$b)/2

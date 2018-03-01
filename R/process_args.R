@@ -1,16 +1,19 @@
 #sets optimization method
 #also checks if necessary tools installed for optmethod specified
 set_optmethod = function(optmethod){
-  # Fallbacks for optmethod
-  # By default it will be "mixIP", if REBayes not present then fallback to EM
-  if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
+  # Fallbacks for optmethod - checks required packages are installed
+  if(optmethod == "mixIP"){
+    if (!requireNamespace("REBayes", quietly = TRUE)) {  # check whether REBayes package is present
     # If REBayes package missing
-    message("Due to absence of package REBayes, switching to EM algorithm")
-    if (requireNamespace("Rcpp")) {
+      message("Due to absence of package REBayes, switching to EM algorithm")
       optmethod = "cxxMixSquarem"
-    } else {
-      optmethod = "mixEM"  # fallback if neither Rcpp or REBayes are installed
-      message("Using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+    }
+  }
+  
+  if(optmethod == "cxxMixSquarem"){
+    if (!requireNamespace("Rcpp", quietly = TRUE)) {
+      message("Due to absence of Rcpp using vanilla EM; for faster performance install REBayes (preferred) or Rcpp")
+      optmethod = "mixEM"
     }
   }
   
@@ -20,9 +23,23 @@ set_optmethod = function(optmethod){
 }
 
 
-check_lik = function(lik){
+check_lik = function(lik, betahat, sebetahat, df, mixcompdist){
   if(is.null(lik$lcdfFUN)){stop("Likelihood must have lcdfFUN")}
   if(is.null(lik$lpdfFUN)){stop("Likelihood must have lpdfFUN")}
+  
+  if(!(lik$name %in% c("normal","t")) & !is.null(df)){
+    warning("Input df is ignored for this likelihood function")
+  }
+  if(!(lik$name %in% c("normal","normalmix")) & mixcompdist == "normal"){
+    stop("Error: Normal mixture for non-normal likelihood is not yet implemented")
+  }
+  if(lik$name %in% c("pois","binom")){
+    if (!sum(betahat==0) | !sum(sebetahat==1)){
+      stop("Error: betahat must be rep(0,n) and sebetaht must be 1 for 
+           Poisson/Binomial likelihood")
+    }
+  }
+  
 }
 
 

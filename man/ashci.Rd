@@ -4,7 +4,7 @@
 \alias{ashci}
 \title{Credible Interval Computation for the ash object}
 \usage{
-ashci(a, level = 0.95, betaindex, lfsr_threshold = 0.05, tol = 0.001,
+ashci(a, level = 0.95, betaindex, lfsr_threshold = 1, tol = 0.001,
   trace = FALSE)
 }
 \arguments{
@@ -47,4 +47,3 @@ CImatrix=ashci(beta.ash,level=0.95)
 CImatrix1=ashci(beta.ash,level=0.95,betaindex=c(1,2,5))
 CImatrix2=ashci(beta.ash,level=0.95,lfsr_threshold=0.1)
 }
-

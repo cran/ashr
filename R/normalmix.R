@@ -85,8 +85,20 @@ log_comp_dens_conv.normalmix = function(m,data){
 }
 
 
-
-
+#' @title comp_cdf_conv.normalmix
+#' @description returns cdf of convolution of each component of a
+#'     normal mixture with N(0,s^2) at x. Note that
+#'     convolution of two normals is normal, so it works that way
+#' @param m mixture distribution with k components
+#' @param data a list with components x and s to be interpreted as a normally-distributed observation and its standard error
+#' @return a k by n matrix
+comp_cdf_conv.normalmix = function (m, data) {
+  if(!is_normal(data$lik)){
+    stop("Error: normal mixture for non-normal likelihood is not yet implemented")
+  }
+  sdmat = sqrt(outer(data$s^2, m$sd^2, FUN="+")) #n by k matrix of standard deviations of convolutions
+  return(t(stats::pnorm(outer(data$x, m$mean, FUN="-") / sdmat)))
+}
 
 
 #' @export
@@ -117,7 +129,6 @@ comp_postmean.normalmix = function(m,data){
   t(tmp)
 }
 
-
 #' @export
 comp_postsd.normalmix = function(m,data){
   if(!is_normal(data$lik)){
@@ -131,3 +142,32 @@ comp_postmean2.normalmix = function(m,data){
   comp_postsd(m,data)^2 + comp_postmean(m,data)^2
 }
 
+#' @title post_sample.normalmix
+#' 
+#' @description returns random samples from the posterior, given a
+#'   prior distribution m and n observed datapoints.
+#' 
+#' @param m mixture distribution with k components
+#' @param data a list with components x and s to be interpreted as a 
+#'     normally-distributed observation and its standard error
+#' @param nsamp number of samples to return for each observation
+#' @return a nsamp by n matrix
+#' @importFrom stats rnorm
+#' @export
+post_sample.normalmix = function(m,data,nsamp){
+  k = length(m$pi)
+  n = length(data$x)
+  
+  postprob = comp_postprob(m,data)
+  postmean = comp_postmean(m,data)
+  postsd = comp_postsd(m,data)
+  
+  # Sample mixture components
+  mixcomp = apply(postprob, 2, function(prob) {
+    sample(1:k, nsamp, replace=TRUE, prob=prob)
+  })
+  # Use samples to index into postmean and postsd matrices
+  idx = mixcomp + rep(k*(0:(n-1)), each=nsamp)
+  samp = rnorm(nsamp*n, postmean[idx], postsd[idx])
+  matrix(samp, nrow=nsamp, ncol=n)
+}

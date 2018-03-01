@@ -63,7 +63,7 @@ calc_qvalue = function(g,data){
 
 
 # Data for flash package
-calc_flash_data = function(g,data){
+calc_flash_data = function(g,data,penloglik){
   kk = ncomp(g)
   n = n_obs(data)
   exclude = get_exclusions(data)
@@ -79,7 +79,18 @@ calc_flash_data = function(g,data){
   comp_postprob[,exclude] = mixprop(g)
   comp_postmean[,exclude] = comp_mean(g)
   comp_postmean2[,exclude] = comp_mean2(g)
-  return(list(comp_postprob = comp_postprob,comp_postmean = comp_postmean,comp_postmean2 = comp_postmean2))
+  
+  postmean = colSums(comp_postprob*comp_postmean)
+  postmean2 = colSums(comp_postprob*comp_postmean2)
+  postmean2[postmean2<0]=0 # avoid potential negatives due to numeric rounding errors
+  
+  return(list(fitted_g = g,
+              comp_postprob = comp_postprob,
+              comp_postmean = comp_postmean,
+              comp_postmean2 = comp_postmean2,
+              postmean = postmean,
+              postmean2 = postmean2,
+              penloglik = penloglik))
 }
 
 
@@ -95,7 +106,11 @@ set_output=function(outputlevel){
     }
     if(outputlevel>1){output=c("data","NegativeProb","PositiveProb","lfsr","svalue","lfdr","qvalue",output)}
     if(outputlevel>2){output=c(output,"fit_details")}
-    if(outputlevel>3){output=c(output,"flash_data")}
+    
+    # this is a special flag for output used by flashr
+    if(outputlevel==4){output=c("fitted_g","PosteriorMean", "PosteriorSD","flash_data")}
+    if(outputlevel==5){output=c("flash_data")}
+    
     return(output)
   }
 }
