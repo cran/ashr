@@ -26,12 +26,15 @@
 #' and a flag to indicate convergence
 #'  
 #' @export
-mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NULL){
+#' 
+mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(),
+                 weights = NULL) {
  
   # This is the smallest value allowed for the mixture weights.
   min.f <- 0
     
-  if(!requireNamespace("REBayes",quietly=TRUE)){stop("mixIP requires installation of package REBayes")}
+  if(!requireNamespace("REBayes",quietly=TRUE))
+    stop("mixIP requires installation of package REBayes")
   control = set_control_mixIP(control)
   n = nrow(matrix_lik)
   k = ncol(matrix_lik)
@@ -42,8 +45,6 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NU
   w = c(prior-1,weights)
   A = A[w!=0,]    #remove zero weight entries, as these otherwise cause errors
   w = w[w!=0]
-                                        #w = rep(1,n+k)
-  check_mosek_license()
   res = REBayes::KWDual(A, rep(1,k), normalize(w), control=control)
 
   # Fix any mixture weights that are less than the minimum allowed value.
@@ -55,8 +56,69 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NU
     res$f[i] <- min.f
     res$f    <- normalize(res$f)
   }
-  
+
   return(list(pihat = normalize(res$f), niter = NULL, converged=(res$status=="OPTIMAL"), control=control))
+}
+
+#' @title Estimate mixture proportions of a mixture model using
+#' mix-SQP algorithm.
+#'
+#' @param matrix_lik A matrix containing the conditional likelihood
+#' values, possibly normalized.
+#'
+#' @param prior A vector of the parameters of the Dirichlet prior on
+#' the mixture weights.
+#'
+#' @param pi_init The initial estimate of the mixture weights.
+#'
+#' @param control A list of settings for the mix-SQP optimization
+#' algorithm; see \code{\link[mixsqp]{mixsqp}} for details.
+#'
+#' @param weights The weights to be assigned to the observations. Must
+#' be a vector of length equal the number of rows of \code{matrix_lik}.
+#' If \code{weights = NULL}, all observations are assigned the same
+#' weight.
+#'
+#' @return A list object including the estimates (\code{pihat}) and a
+#' flag (\code{control}) indicating convergence success or failure.
+#' 
+#' @importFrom utils modifyList
+#' @importFrom mixsqp mixsqp
+#' 
+#' @export
+#' 
+mixSQP <- function (matrix_lik, prior, pi_init = NULL,
+                    control = list(), weights = NULL) {
+  mixsqp.status.converged <- "converged to optimal solution"
+  n <- nrow(matrix_lik)
+  k <- ncol(matrix_lik)
+
+  # If weights are not provided, set to uniform.
+  if (is.null(weights))
+    weights <- rep(1,n)
+
+  # It the initial estimate of the mixture weights is not provided,
+  # set to uniform.
+  if (is.null(pi_init))
+    pi_init <- rep(1,k)
+  
+  # Add in observations corresponding to the prior.
+  A <- rbind(diag(k),matrix_lik) 
+  w <- c(prior - 1,weights)
+  A <- A[w != 0,]
+  w <- w[w != 0]
+
+  # Fit the mixture weights using the mix-SQP algorithm.
+  control0 <- list(verbose = FALSE)
+  control  <- modifyList(control0,control,keep.null = TRUE)
+  out <- mixsqp::mixsqp(A,w,pi_init,control = control)
+  
+  # Return the fitted mixture weights, and some other information
+  # about the optimization step.
+  return(list(pihat     = out$x,
+              niter     = nrow(out$data),
+              converged = (out$status == mixsqp.status.converged),
+              control   = control))
 }
 
 #' @title Estimate mixture proportions of a mixture model by EM algorithm
@@ -68,7 +130,6 @@ mixIP = function(matrix_lik, prior, pi_init = NULL, control = list(), weights=NU
 #' Estimates mixture proportions \eqn{\pi} by maximum likelihood, or by maximum a posteriori (MAP) estimation for a Dirichlet prior on \eqn{\pi} 
 #' (if a prior is specified).  Uses the SQUAREM package to accelerate convergence of EM. Used by the ash main function; there is no need for a user to call this 
 #' function separately, but it is exported for convenience.
-#'
 #' 
 #' @param matrix_lik, a n by k matrix with (j,k)th element equal to \eqn{f_k(x_j)}.
 #' @param prior, a k vector of the parameters of the Dirichlet prior on \eqn{\pi}. Recommended to be rep(1,k)
@@ -111,10 +172,10 @@ penloglik = function(pi, matrix_lik, prior){
   m  = t(pi * t(matrix_lik)) # matrix_lik is n by k; so this is also n by k
   m.rowsum = rowSums(m)
   loglik = sum(log(m.rowsum))
-  return(loglik+penalty(prior))
+  return(loglik+penalty(prior, pi))
 }
 
-penalty=function(prior){
+penalty=function(prior, pi){
   subset = (prior != 1.0)
   sum((prior-1)[subset]*log(pi[subset]))
 }
@@ -301,30 +362,4 @@ VBpenloglik = function(pipost, matrix_lik, prior){
   
   B= sum(classprob*log(avgpipost*matrix_lik),na.rm=TRUE) - diriKL(prior,pipost) - sum(classprob*log(classprob)) 
   return(B)
-}
-
-check_mosek_license <- function() {
-
-  # Create a simple test problem to optimize.
-  x       <- list()
-  x$sense <- "max"
-  x$c <- c(3,1,5,1)
-  x$A <- Matrix::Matrix(c(3,1,2,0,
-                  2,1,3,1,
-                  0,2,0,3),
-                nrow=3,byrow = TRUE,sparse = TRUE)
-  x$bc <- rbind(blc = c(30,15,-Inf),
-                buc = c(30,Inf,25))
-  x$bx <- rbind(blx = c(0,0,0,0),
-                bux = c(Inf,10,Inf,Inf))
-
-  # If the optimization problem is not solved successfully, report an error.
-  tryCatch({
-    out <- Rmosek::mosek(x,opts = list(verbose = 0))
-    if (out$response$code != 0)
-      stop(paste("MOSEK is installed, but failed to run. A common issue is that\n",
-                  "the license is expired unavailable. To troubleshoot, see:\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-mac.md\n",
-                  "https://github.com/stephens999/ashr/blob/master/inst/rmosek-linux.md"))
-  })
 }
