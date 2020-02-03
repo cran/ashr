@@ -1,11 +1,11 @@
-e111e856776002553250a348acb13abf *DESCRIPTION
+3c0905523368d319314825787110cbf8 *DESCRIPTION
 1503e3177e3ae9c672c25d9f8fc0564c *NAMESPACE
 8851e921cf00104b743f8be2cf157087 *NEWS.md
 d31e8fcd1007e1762994532dd1ccea98 *R/RcppExports.R
-d41bb5a52e605860c8c92b2d4cf16a05 *R/ash.R
+b530b1676c0de27147ee8342d21e51ec *R/ash.R
 9c5f8c6ec704c2be1955a19603610713 *R/ashCI.R
+2b21c536d02dc978cfaa81022acd100d *R/ash_estmode.R
 929991a9d95a799c5e0c8b764e6bca68 *R/ash_pois.R
-0c7fbdcaca1a4d4737a041104ef13c1f *R/ashn.R
 fd9a4d36d565f1f3846e78687bf3ec5b *R/ashr-package.R
 b20b4846f7531dbe5ae83c377f14eade *R/ashutility.R
 0ab375f5c70cdc83b0a4b3db63a53d4d *R/get_functions.R
@@ -13,7 +13,7 @@ b20b4846f7531dbe5ae83c377f14eade *R/ashutility.R
 50310462aa1263758dcb0e04d8267bb0 *R/lik.R
 87004cbab1dc424de55e97ee323a62c7 *R/logF.R
 040f6eb42e887f31bbad6abfbd82d03e *R/mix.R
-2a949774696ab85d4f0db9907d145b52 *R/mix_opt.R
+ebf344e87180ffb3fecdd4f1804f54a2 *R/mix_opt.R
 9ae246fa874b5c9d0cd7676cd3f961e9 *R/normalmix.R
 c09ca8bca22ea523695e2df1c3e0d4b1 *R/output.R
 1a2e63cf09c74f1fa6f1221c09e9d8e2 *R/process_args.R
@@ -25,10 +25,10 @@ c0c439a424d497983116cd404e6b0556 *R/truncgen.R
 1c35911e27212d4c02a5fb8b716eea99 *R/truncnorm.R
 82fd39daf946bf969ef67666513ad80d *R/trunct.R
 24df0bc9b7f14ceb5c7bceddbbac80d8 *R/unimix.R
-f52cf87588e4be6d7fd46f5f890c13da *build/vignette.rds
-010d3991423afd009dfb690ca8f92647 *inst/doc/adaptive_shrinkage.R
+75d568833aec87ffc53186bfe1aeefa9 *build/vignette.rds
+7367588fcda9c3c2a53f37fc6d54f95a *inst/doc/adaptive_shrinkage.R
 e3a7b42280509991db1b0259b4fd44ba *inst/doc/adaptive_shrinkage.Rmd
-b5b5928b4945f189d0271a516e0d2f68 *inst/doc/adaptive_shrinkage.html
+55fff1b7a3c32c3fe6f7ec51fa311f73 *inst/doc/adaptive_shrinkage.html
 f7c9ca23cb7b3fad61285a268b2e518b *man/ash.Rd
 59ce7d0e6ad53d1e531b2383060c5f79 *man/ash_pois.Rd
 ef0afff8061178c17c6fd18ddf4224ae *man/ashci.Rd

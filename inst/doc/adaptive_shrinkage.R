@@ -1,8 +1,8 @@
-## ----load_packages-------------------------------------------------------
+## ----load_packages------------------------------------------------------------
 library(ashr)
 library(ggplot2)
 
-## ----initialize, collapse=TRUE-------------------------------------------
+## ----initialize, collapse=TRUE------------------------------------------------
 set.seed(100)
 
 # Simulates data sets for experiments below.
@@ -48,11 +48,11 @@ print(rbind(spiky     = quantile(sim.spiky$input$betahat,seq(0,1,0.1)),
             bignormal = quantile(sim.bignormal$input$betahat,seq(0,1,0.1))),
       digits = 3)
 
-## ----run_ash-------------------------------------------------------------
+## ----run_ash------------------------------------------------------------------
 beta.spiky.ash     = ash(sim.spiky$input$betahat,s)
 beta.bignormal.ash = ash(sim.bignormal$input$betahat,s)
 
-## ----plot_shrunk_vs_obs, fig.align="center"------------------------------
+## ----plot_shrunk_vs_obs, fig.align="center"-----------------------------------
 make_df_for_ashplot =
   function (sim1, sim2, ash1, ash2, name1 = "spiky", name2 = "big-normal") {
     n = length(sim1$input$betahat)
@@ -78,7 +78,7 @@ df = make_df_for_ashplot(sim.spiky,sim.bignormal,beta.spiky.ash,
                          beta.bignormal.ash)
 print(ashplot(df))
 
-## ----plot_pvalues, fig.align="center", warning=FALSE---------------------
+## ----plot_pvalues, fig.align="center", warning=FALSE--------------------------
 pval_plot = function (df)
   ggplot(df,aes(x = pnorm(-abs(betahat/s)),y = lfsr,color = log(s))) +
   geom_point() + facet_grid(.~scenario) + xlim(c(0,0.025)) +
@@ -88,7 +88,7 @@ pval_plot = function (df)
 
 print(pval_plot(df))
 
-## ----run_ash_ET, fig.align="center", warning=FALSE-----------------------
+## ----run_ash_ET, fig.align="center", warning=FALSE----------------------------
 beta.bignormal.ash.ET =
   ash(sim.bignormal$input$betahat,s,alpha = 1,mixcompdist = "normal")
 beta.spiky.ash.ET =
@@ -98,13 +98,13 @@ df.ET = make_df_for_ashplot(sim.spiky,sim.bignormal,beta.spiky.ash.ET,
 ashplot(df.ET,ylab = "Shrunken beta estimate (ET model)")
 pval_plot(df.ET)
 
-## ----volcano, fig.align="center", warning=FALSE--------------------------
+## ----volcano, fig.align="center", warning=FALSE-------------------------------
 print(ggplot(df,aes(x = betahat,y = -log10(2*pnorm(-abs(betahat/s))),
                     col = signif)) +
   geom_point(alpha = 1,size = 1.75) + facet_grid(.~scenario) +
   theme(legend.position = "none") + xlim(c(-10,10)) + ylim(c(0,15)) +
   xlab("Effect (beta)") + ylab("-log10 p-value"))
 
-## ----info----------------------------------------------------------------
+## ----info---------------------------------------------------------------------
 print(sessionInfo())
 
