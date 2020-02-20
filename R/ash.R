@@ -1,5 +1,5 @@
 #' @useDynLib ashr
-#' @import Matrix truncnorm SQUAREM doParallel pscl Rcpp foreach parallel
+#' @import Matrix truncnorm SQUAREM Rcpp
 #' @title Adaptive Shrinkage
 #'
 #' @description Implements Empirical Bayes shrinkage and false discovery rate
@@ -369,6 +369,10 @@ ash.workhorse <-
     k = length(mixsd)
     prior = setprior(prior, k, nullweight, null.comp)
     pi = initpi(k, length(data$x), null.comp)
+    if(optmethod=="mixSQP"){ # we found that using a constant initialization for mixSQP works better than
+      #initpi, which was aimed at initializing EM algorithm
+      pi = rep(1,k)
+    }
 
     if (mixcompdist == "normal")
       g = normalmix(pi, rep(mode, k), mixsd)
