@@ -520,7 +520,8 @@ setprior=function(prior,k,nullweight,null.comp){
 #' @return The local false sign rate.
 #' @export
 compute_lfsr = function(NegativeProb,ZeroProb){
-  ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
+  lfsr = ifelse(NegativeProb> 0.5*(1-ZeroProb),1-NegativeProb,NegativeProb+ZeroProb)
+  ifelse(lfsr<0,0,lfsr)
 }
 
 
@@ -590,7 +591,7 @@ estimate_mixprop = function (data, g, prior,
   matrix_lik = exp(matrix_llik)
 
   # All-zero columns pose problems for most optimization methods.
-  nonzero_cols = (apply(matrix_lik, 2, max) > 0)
+  nonzero_cols = (apply(matrix_lik, 2, max) > 0) | (prior > 1)
   if (!all(nonzero_cols)) {
     prior = prior[nonzero_cols]
     weights = weights[nonzero_cols]

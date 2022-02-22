@@ -1,8 +1,8 @@
-03219867f98d6b452e39a2dc43cfb338 *DESCRIPTION
-0692f940aad3470007c225ceec57fdb5 *NAMESPACE
+278f2e38afdd2b72f70b54d9b8891fd6 *DESCRIPTION
+a60d7bc075b02a05abcde0cbb2834663 *NAMESPACE
 8851e921cf00104b743f8be2cf157087 *NEWS.md
 d31e8fcd1007e1762994532dd1ccea98 *R/RcppExports.R
-b37fba7e0168a9b8b590d01b566d2385 *R/ash.R
+a0b7a3536ccfe5fb70e70350c99f258e *R/ash.R
 9c5f8c6ec704c2be1955a19603610713 *R/ashCI.R
 2b21c536d02dc978cfaa81022acd100d *R/ash_estmode.R
 929991a9d95a799c5e0c8b764e6bca68 *R/ash_pois.R
@@ -14,11 +14,11 @@ b20b4846f7531dbe5ae83c377f14eade *R/ashutility.R
 87004cbab1dc424de55e97ee323a62c7 *R/logF.R
 040f6eb42e887f31bbad6abfbd82d03e *R/mix.R
 a0ef2b4916e04741fb1ab495cb218db0 *R/mix_opt.R
-9ae246fa874b5c9d0cd7676cd3f961e9 *R/normalmix.R
-c09ca8bca22ea523695e2df1c3e0d4b1 *R/output.R
+5c4f45a7cabed201843f63938a9a9fd1 *R/normalmix.R
+9eba947d8e28bd25c0bc578adea8ea8b *R/output.R
 7aa0e28f64ec4f5080bda983849ceaf9 *R/process_args.R
 0927a47b1ef6cedf748f80efae62d254 *R/set_data.R
-72b4cbd9812cc781f4ac6ee654a3d790 *R/tnormalmix.R
+5c463029c1cb7b7e8501e7e7d8399e58 *R/tnormalmix.R
 6e7b9c6bf386ea45593a9d63c94b2317 *R/truncbeta.R
 5e3d7e081eccd8921e425388c2a2908a *R/truncgamma.R
 c0c439a424d497983116cd404e6b0556 *R/truncgen.R
@@ -28,7 +28,7 @@ c0c439a424d497983116cd404e6b0556 *R/truncgen.R
 75d568833aec87ffc53186bfe1aeefa9 *build/vignette.rds
 7367588fcda9c3c2a53f37fc6d54f95a *inst/doc/adaptive_shrinkage.R
 e3a7b42280509991db1b0259b4fd44ba *inst/doc/adaptive_shrinkage.Rmd
-2fd615315d44ef0840328d0a1df94dc0 *inst/doc/adaptive_shrinkage.html
+4fad33a89eca349770965e50ba3af2c6 *inst/doc/adaptive_shrinkage.html
 07aba18b5203bc2befca74cf09b74fc7 *man/ash.Rd
 59ce7d0e6ad53d1e531b2383060c5f79 *man/ash_pois.Rd
 d460d818d9494d1a7e8d781bf9850e47 *man/ashci.Rd
@@ -55,6 +55,7 @@ dd8d3aebc5ce7a64ad3c951e7f683517 *man/comp_dens_conv.Rd
 017e2787cc7caa102f56a5f6ad115ea2 *man/comp_dens_conv.unimix.Rd
 a4cbb4f5196a1ac351aa1fa62310e92d *man/comp_mean.Rd
 1dc1993a60a86b58ef433efb9d02b08b *man/comp_mean.normalmix.Rd
+14e45f9d1018511c5d68dfc68420f43f *man/comp_mean.tnormalmix.Rd
 e31e1cb2845947438fc989d06a0a1714 *man/comp_mean2.Rd
 f5feac7ffa6e312c97e7e645dc1ff97f *man/comp_postmean.Rd
 c562e6358ca5f5ef9f9bdf9ced7abaeb *man/comp_postmean2.Rd
@@ -62,6 +63,7 @@ edd9f60630a8ac80b72bdba57bb1a4e4 *man/comp_postprob.Rd
 43b71d26960f68f9423e951a1f4bc272 *man/comp_postsd.Rd
 8c940eb86e2a4281d367d94d65862613 *man/comp_sd.Rd
 38a6b4d93aa2f6ef5923d102a518f020 *man/comp_sd.normalmix.Rd
+d6007f846a17dd567ff863d01227dcd8 *man/comp_sd.tnormalmix.Rd
 8ee4fddc41cc10edb18f6e9bd43c7258 *man/compute_lfsr.Rd
 f5cb10a09d66a235c494a00dc99f5de3 *man/cxxMixSquarem.Rd
 371b9e50942864b8be3e09e93e823ea4 *man/dens.Rd
@@ -122,6 +124,7 @@ b46c0f78934d1d5fb75fe0020da1ec37 *man/prune.Rd
 1da9bebe9846ef5fbe2bf71b584329cf *man/qval.from.lfdr.Rd
 2f3f9eaea51e3a9427f850fa2b3c573c *man/set_data.Rd
 f533717116df827cc5e9df06bf5b1a7f *man/summary.ash.Rd
+e1d2c3da93c717682d414d8b2add13a2 *man/tnormalmix.Rd
 d9221730c0adf3eadc18ef9827ef1623 *man/unimix.Rd
 74df50688f3775cbbd686d89fb8a24bd *man/vcdf_post.Rd
 5f8dfcfb54c916f27e90805f892821f3 *man/w_mixEM.Rd
@@ -149,7 +152,7 @@ c64aa584c422ae415c4df18a094c9b1b *tests/testthat/test_one_obs.R
 4d3760cc967c91256e3dacfd76551139 *tests/testthat/test_pois.R
 3d5d817af91bd799379a992ab10edc98 *tests/testthat/test_pois_data.Rds
 2c125763c34f79ff8cf17b71bc247d80 *tests/testthat/test_postsample.R
-7746e43bea2b5394588707d69c0289e2 *tests/testthat/test_prior.R
+6dde9c3beabf61b5e42e31759d5c0499 *tests/testthat/test_prior.R
 93a98b8783605ed1215e13b030aae512 *tests/testthat/test_prune.R
 37e3612966d62d6506436a1b954f3948 *tests/testthat/test_tnormal.R
 40975ae7fb595c35c9e42e51e091c520 *tests/testthat/test_truncgen.R
