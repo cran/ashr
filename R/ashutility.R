@@ -212,11 +212,12 @@ calc_logLR = function(g,data){
 #' @export
 #'
 calc_vloglik = function(g,data){
-  if(class(g)=="ash"){
-    if(g$data$alpha != data$alpha){
-      warning("Model (alpha value) used to fit ash does not match alpha in data! Probably you have made a mistake!")
-    }
-    if(class(g)=="ash"){g = g$fitted_g} #extract g object from ash object if ash object passed
+  if (inherits(g,"ash")) {
+    if (g$data$alpha != data$alpha)
+      warning("Model (alpha value) used to fit ash does not match alpha in ",
+              "data! Probably you have made a mistake!")
+    if (inherits(g,"ash"))
+      g <- g$fitted_g # Extract g object from ash object if ash object passed.
   }
   
   # compute log(dens_conv(g,data))
@@ -307,26 +308,6 @@ cdf.ash=function(a,x,lower.tail=TRUE){
 #' @export
 get_post_sample = function(a,nsamp){
   return(post_sample(a$fitted_g,a$data,nsamp))
-}
-
-#Functions from MATLAB packages, used to measure performance and to show progress
-tic <- function(gcFirst = TRUE, type=c("elapsed", "user.self", "sys.self"))
-{
-  type <- match.arg(type)
-  assign(".type", type, envir=baseenv())
-  if(gcFirst) gc(FALSE)
-  tic <- proc.time()[type]
-  assign(".tic", tic, envir=baseenv())
-  invisible(tic)
-}
-
-toc <- function()
-{
-  type <- get(".type", envir=baseenv())
-  toc <- proc.time()[type]
-  tic <- get(".tic", envir=baseenv())
-  print(toc - tic)
-  invisible(toc)
 }
 
 

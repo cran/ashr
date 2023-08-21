@@ -22,6 +22,7 @@ igmix = function(pi,alpha,beta){
   structure(data.frame(pi,alpha,beta),class="igmix")
 }
 
+#' @export
 comp_sd.igmix = function(m){
   m$beta/(m$alpha-1)/sqrt(m$alpha-2)
 }
@@ -41,7 +42,7 @@ comp_dens.igmix = function(m,y,log=FALSE){
 #density of product of each component of a inverse-gamma mixture with Gamma(v/2,v/2) at s
 # s an n-vector at which density is to be evaluated
 #return a k by n matrix
-comp_dens_conv.igmix = function(m,data,FUN="+"){
+comp_dens_conv.igmix = function(m,data,FUN="+",...){
   k=ncomp(m)
   x = data$x
   s = data$s

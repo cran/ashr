@@ -74,10 +74,10 @@
 #' zero as one of components for a mixture distribution.
 #'
 #' @param prior string, or numeric vector indicating Dirichlet prior
-#' on mixture proportions (defaults to "uniform", or (1,1...,1); also
-#' can be "nullbiased" (nullweight,1,...,1) to put more weight on
-#' first component), or "unit" (1/K,...,1/K) [for optmethod=mixVBEM
-#' version only].
+#'   on mixture proportions: \dQuote{nullbiased},
+#'   \code{c(nullweight,1,...,1)}, puts more weight on first component;
+#'   \dQuote{uniform} is \code{c(1,1...,1)}; \dQuote{unit} is
+#'    (1/K,...,1/K), for \code{optmethod = mixVBEM} version only.
 #'
 #' @param mixsd Vector of standard deviations for underlying mixture components.
 #'
@@ -672,9 +672,8 @@ estimate_mixprop = function (data, g, prior,
 #'
 #'
 posterior_dist = function(g,betahat,sebetahat){
-  if(class(g)!="normalmix"){
+  if (!inherits(g,"normalmix"))
     stop("Error: posterior_dist implemented only for g of class normalmix")
-  }
   pi0 = g$pi
   mu0 = g$mean
   sigma0 = g$sd
